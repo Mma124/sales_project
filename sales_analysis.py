@@ -11,11 +11,42 @@ df["Profit"] = df["Revenue"] - (df["Quantity"] * df["Cost"])
 product_summary = df.groupby("Product")[["Revenue", "Profit"]].sum()
 category_summary = df.groupby("Category")[["Revenue", "Profit"]].sum()
 
+# ======================
+# Generate Insights
+# ======================
+
+top_product = product_summary["Profit"].idxmax()
+top_product_profit = product_summary["Profit"].max()
+
+low_product = product_summary["Profit"].idxmin()
+low_product_profit = product_summary["Profit"].min()
+
+top_category = category_summary["Profit"].idxmax()
+top_category_profit = category_summary["Profit"].max()
+
+profit_margin = round((df["Profit"].sum() / df["Revenue"].sum()) * 100, 2)
+
+insights = [
+    ["Top Product", top_product, top_product_profit],
+    ["Lowest Product", low_product, low_product_profit],
+    ["Top Category", top_category, top_category_profit],
+    ["Overall Profit Margin (%)", profit_margin, ""],
+    ["Recommendation",
+     f"Focus more on {top_product} and {top_category}. Consider improving or discounting {low_product}.",
+     ""]
+]
+
+insights_df = pd.DataFrame(
+    insights,
+    columns=["Metric", "Value", "Amount"]
+)
+
 # تصدير البيانات أولًا
 with pd.ExcelWriter("sales_report.xlsx", engine="openpyxl") as writer:
     df.to_excel(writer, sheet_name="Clean_Data", index=False)
     product_summary.to_excel(writer, sheet_name="By_Product")
     category_summary.to_excel(writer, sheet_name="By_Category")
+    insights_df.to_excel(writer, sheet_name="Insights", index=False)
 
 # تحميل الملف لإضافة Charts
 wb = load_workbook("sales_report.xlsx")
